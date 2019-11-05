@@ -532,4 +532,4 @@ $ tools/maven/api.sh <install|deploy> bazel
 
 *David Ostrovsky*
 
-Mainatainer, Gerrit Code Review
+Maintainer, Gerrit Code Review

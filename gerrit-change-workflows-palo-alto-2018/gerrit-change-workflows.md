@@ -356,4 +356,4 @@ done
 
 *David Ostrovsky*
 
-Mainatainer, Gerrit Code Review
+Maintainer, Gerrit Code Review
