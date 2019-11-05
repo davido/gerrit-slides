@@ -4,3 +4,4 @@
 * [Bazel New and Noteworthy, Palo Alto 2018](./bazel-new-and-noteworthy-palo-alto-2018/bazel-new-and-noteworthy.md)
 * [Bazel Build Gerrit, Mountain View 2016](./bazel-build-gerrit-mountain-view-2016/bazel-build-gerrit.md)
 * [Gerrit Inline Edit, 2016](./gerrit-inline-edit-2016/gerrit-inline-edit.md)
+* [Gerrit User Authentication, Brussels, 2016](./gerrit-user-authentication-brussels-2016/gerrit-user-authentication.md)

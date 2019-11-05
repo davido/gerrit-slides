@@ -1,0 +1,348 @@
+= New Features in Gerrit Code Review
+:backend: slidy
+:max-width: 70em
+
+[[title-page]]
+== New Features in Gerrit Code Review
+
+* 2.10.1
+* 2.12
+* master
+
+=== David Ostrovsky
+
+== New and noteworthy in Gerrit 2.10.1
+
+* Core extension point for OAuth authentication scheme
+* OpenID+OAuth hybrid authentication scheme support
+* More on it later
+
+== New and noteworthy in Gerrit 2.12 (1)
+
+* Further polishing of inline edit feature, I presented last year
+* Add 'auto close brackets' feature
+* Add 'match brackets' feature
+* Make the cursor blink rate customizable
+* Add support for Emacs and Vim key maps
++
+`has:edit` secondary index predicate is used to find changes that have
+  change edit on them
+
+image:img/inline-edit-finding-change-edit.png[]
+
+== New and noteworthy in Gerrit 2.12 (2)
+
+* Customize inline editor
+
+image:img/inline-edit-customize-inline-editor.png[]
+
+== New and noteworthy in Gerrit 2.12 (3)
+
+* Signed push support can be enabled by setting
++
+`receive.enableSignedPush` to true.`
++
+* When a client pushes with `git push --signed`,
++
+Gerrit ensures that the push certificate is valid and
++
+signed with a valid public key stored in the
++
+`refs/gpg-keys` branch of the `All-Users` repository.
+
+== New and noteworthy in Gerrit 2.12 (4)
+
+image:img/gerrit-import-gpg-key-view.png[]
+
+== New and noteworthy in Gerrit 2.12 (5)
+
+* `git commit -s -S`
+* `git log -1 --show-signature`
+
+----
+commit 8a9c32d248d53464721cc8400d3afd1952cb76e8
+gpg: Signature made Sat 30 Jan 2016 11:52:40 AM CET using RSA key ID 94DCF0ED
+gpg: Good signature from "David Ostrovsky <david at ostrovsky.org>" [ultimate]
+Author: David Ostrovsky <david at ostrovsky.org>
+Date:   Sat Jan 30 11:41:56 2016 +0100
+
+    Test signed push
+----
+
+* `git push  --signed origin HEAD:refs/for/master`
+
+----
+You need a passphrase to unlock the secret key for
+user: "David Ostrovsky <david@ostrovsky.org>"
+2048-bit RSA key, ID 94DCF0ED, created 2015-11-30
+[...]
+----
+
+== New and noteworthy in Gerrit 2.12 (6)
+
+image:img/gerrit-signed-push-confirmation.png[]
+
+== New and noteworthy in Gerrit 2.12 (7)
+
+* PolyGerrit: revamped UI based on Google JavaScript Polymer framework
+* Only supports very basic stuff
+* Already used by Google Chromium project for dog fooding:
+** https://canary-chromium-review.googlesource.com/?polygerrit=1
+
+== New and Noteworthy in Gerrit 3.0
+
+* Replace database with Git backend
+* Some tables were dropped on master already
++
+and migrated the data to Git
+
+== New and Noteworthy in Gerrit ?
+
+* Git Ketch multi-master replication in JGit
+* Announcement on JGit mailing list:
+** https://dev.eclipse.org/mhonarc/lists/jgit-dev/msg03073.html
+* Based on the Raft consensus algorithm
+** https://raft.github.io/
+* First commit was merged:
+** https://git.eclipse.org/r/64206
+
+== Conclusion
+
+* New features to get excited about
+* Stay tuned
+* You can help by contributing or providing feedback
+** :)
+
+== Gerrit User Authentication (1)
+
+* Late feature that went into minor release 2.10.1
+** Core extension point for OAuth authentication scheme
+** OpenID+OAuth hybrid authentication scheme support
+* Some details to understand what happened
+
+== Gerrit User Authentication (2)
+
+* Gerrit is code review tool and not identity management system 
+* Gerrit relies on external identity management providers
+* Different kinds of authentications in Gerrit:
++
+** Gerrit UI (interactive) authentication
+** Git authentication
+** Gerrit Batch CLI authentication
+
+== Gerrit UI authentication
+
+* Built in
+** LDAP
+** OpenID (Google, Launchpad, Fedoraproject, ...)
+** OpenID SSO (pinned to one provider)
+* Third party
+** HTTP (frontend reverse proxy)
+** Custom (closed source) solutions
+* Pluggable authentication option?
+** no
+* OAuth2?
+** no (GitHub, Butbucket, ... not supported)
+
+== Auth schemes used by open source projects
+
+* OpenStack: OpenID SSO (Launchpad)
+* LibreOffice: OpenID (Google, Launchpad, Fedoraproject, ...)
+* Wikimedia: LDAP
+
+== Google shuts down the OpenID 2.0
+
+* Announced one year before the deadline: April 20, 2015
+
+== OpenID 2.0 for Google Accounts has gone
+
+image:img/openid-for-google-accounts-has-gone.png[]
+
+== Adjust Gerrit to Google's OpenID 2.0 shutdown
+
+* Replace one line in login form:
+* "Sign in with a Launchpad ID"
+* "Sign in with a Google"
+
+== Migration path from Google OpenID 2.0 to ...
+
+* Migrate to Google OAuth2
+* Except that ...
+* Gerrit doesn't support OAuth2
+* Now what?
+
+== Options for Gerrit users
+
+* Migrate Gerrit site to LDAP
+** Additional infra-task
+** Self service application is needed
+** Look at https://github.com/pwm-project/pwm
+* Ask users to switch to another OpenID provider
+** Really?
+
+== Vote on the issue in issue tracker
+
+image:img/gerrit-issue-openid-not-supported-by-google.png[]
+
+== So let's add GitHub OAuth support to Gerrit core
+
+* Almost 1 year development / 57 patch sets
+* Endless reviews, suggestions, discussions
+
+image:img/github-oauth-support-in-gerrit-core.png[]
+
+== Lessons learned?
+
+* OAuth2 provider implementation doesn't fit in Gerrit core
+* Every single provider has
+** application id and secret (unique per site)
+** application callback URL (unique per site)
+** different URL to authenticate user
+** different URL and the API to retrieve user identity
+** additional library dependencies may be introduced
+** additional services may be provided:
+*** SSH key, organizations, groups, ...
+
+== Pluggable OAuth provider approach (1)
+
+* New authenticaton scheme: `OAUTH`
+* Only add extension point to Gerrit core
+* No provider code and dependencies in core
+* Code is implemented as plugin
+* One plugin can support multiple OAuth providers
+* SSO is given for granted when single provider used
+
+== Pluggable OAuth provider approach (2)
+[source,java]
+---------------------------------------------------------------------
+@ExtensionPoint
+public interface OAuthServiceProvider {
+  /**
+   * Returns the URL where you should redirect your users to
+   * authenticate your application.
+   */
+  String getAuthorizationUrl();
+
+  /**
+   * Retrieve the access token
+   */   
+  OAuthToken getAccessToken(OAuthVerifier verifier);
+
+   /**
+   * After establishing of secure communication channel,
+   * this method supossed to access the protected resoure
+   * and retrieve the user infos.
+   */
+  OAuthUserInfo getUserInfo(OAuthToken token) throws IOException;
+}
+---------------------------------------------------------------------
+
+== Pluggable OAuth provider approach (3)
+
+image:img/gerrit-pluggable-oauth-provider-approach.png[]
+
+== Pluggable OAuth provider approach (4)
+
+image:img/gerrit-oauth-provider-plugin.png[]
+
+== Pluggable OAuth provider approach (5) 
+
+image:img/gerrit-oauth-signin-multiple-providers.png[]
+
+== GitHub OAuth plugin
+
+[source,java]
+---------------------------------------------------------------------
+public class GitHubApi {
+
+  private static final String AUTHORIZE_URL =
+      "https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s";
+
+  @Override
+  public String getAccessTokenEndpoint() {
+    return "https://github.com/login/oauth/access_token";
+  }
+  [...]
+---------------------------------------------------------------------
+
+== Google OAuth plugin
+
+[source,java]
+---------------------------------------------------------------------
+public class GoogleApi {
+
+  private static final String AUTHORIZE_URL =
+      "https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=%s&redirect_uri=%s&scope=%s";
+
+  @Override
+  public String getAccessTokenEndpoint() {
+    return "https://accounts.google.com/o/oauth2/token?grant_type=authorization_code";
+  }
+  [...]
+---------------------------------------------------------------------
+
+== Job done
+
+* For new Gerrit site we can use plugin for:
+** GitHub
+** Google
+** Bitbucket
+** CloudFoundry User Account and Authentication (UAA)
+* But wait ...
+* What is with existing Gerrit sites?
+
+== What is with existing Gerrit sites?
+
+* Migration path from OpenID to OAuth?
+* How to replace legacy OpenID providers:
+** Launchpad, Fedoraproject, ...
+** that don't support OAuth2 protocoll
+** Ask users to switch to OAuth2 provider?
+** Really?
+
+== Hybrid OpenID+OAuth auth scheme (1)
+
+* Preserve old authenticaton scheme: `OPENID`
+* Install one or more OAuth2 plugins
+* Gerrit core detects the plugins and OAuth2 providers
++
+offered in addition to OpenID providers
+
+== Hybrid OpenID+OAuth auth scheme (2)
+
+image:img/gerrit-oauth-openid-hybrid-auth-scheme.png[]
+
+== Hybrid OpenID+OAuth auth scheme (3)
+
+* In the wild: https://review.cyanogenmod.org/login
+
+== Linking between OpenID and OAuth
+
+* User Identity linking is supported in Gerrit
+** OpenID -> OpenID
+** OpenID -> OAuth
+** OAuth -> OpenID
+** OAuth -> OAuth
+
+== Resources
+
+* https://github.com/davido/gerrit-oauth-provider
+* https://github.com/davido/gerrit-oauth-provider/wiki/Getting-Started
+* https://gerrit.googlesource.com/plugins/cfoauth
+* https://gerrit.googlesource.com/plugins/github/+/master/README.md
+
+== Questions
+
+* ???
+
+++++
+<style type="text/css">
+#title-page {
+  border-bottom: 0;
+  text-align: center;
+  position: relative;
+  top: 30%;
+  font-size: 60px;
+}
+</style>
+++++

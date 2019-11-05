@@ -204,3 +204,9 @@ Change edits are shown as 'edit' on the change screen:
 
 * Mark changed files in context of change edit in file table
 * Reuse inline edit feature for conflict resolution during rebase operation
+
+## Thank you
+
+*David Ostrovsky*
+
+Maintainer, Gerrit Code Review
