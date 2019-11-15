@@ -1,0 +1,96 @@
+= Building Gerrit and plugins: New and Noteworthy, David Ostrovsky
+:backend: slidy
+:max-width: 70em
+
+[[title-page]]
+
+== Bazel: New and Noteworthy
+=== David Ostrovsky, GerritForge
+==== Gerrit User Conference
+===== Sunnyvale, 2019
+
+== Outline
+
+* Gerrit project overview
+* Gerrit CI
+* Remote build execution
+* Recent changes in build area
+
+== Gerrit project from build perspective
+
+* ca. 300K LoC Java production code
+* ca. 115K LoC Java test code
+* ca. 47K LoC JavaScript PolyGerrit UI
+* Ca. 160 dependencies (no transitive deps)
+* Plugin API:
+  * `extension-api`
+  * `plugin-api`
+  * `acceptance-framework`
+* 149 plugins
+* 88 valid builds on 2.14 stable branch or later
+* Two plugin build modes: In tree and standalone modes
+  * `bazlets` project: reusable Bazel rules for standalone plugin build mode
+
+== Gerit build evolution
+
+* Apache Maven: until 2.7
+* Buck: 2.8 - 2.13
+* Bazel: default from 2.14
+
+== Bazel migration in 2016
+
+* Bazel: a modern build and test orchestration environment
+image:./imgs/bazel-choose-two.png[]
+
+== Who is using Bazel
+
+image:./imgs/who_is_using_bazel.png[]
+
+== Gerrit is using Bazel
+
+image:./imgs/who_is_using_bazel_with_gerrit.png[]
+
+== Bazel advantages
+
+* Incremental
+* Hermetic (run in a sandbox)
+* Deterministic
+* Fast (run like the devil)
+* Stable: 10+ years old Google project
+** just reached stable vesion 1.0 (congrats!)
+
+== Why is Bazel that fast?
+
+* A number of local Bazel caches are enabled in Gerrit per default:
+
+image:./imgs/gerrit-bazel-cache-directory-tree.png[]
+
+* As the result: fast local and CI build
+** Pre-warm build cache for all support branches during docker image build
+
+== Gerrit core development environment
+
+* Eclipse IDE support (Python script: `tools/eclipse/project.py`)
+** dev-eclipse.txt
+* IntelliJ IDE support (IntelliJ plugin for Bazel: https://ij.bazel.build)
+** dev-intellij.txt
+* PolyGerrit Development Servlet for live modifications, bazelified
+** polygerrit-ui/README.md
+
+== Thank you
+
+*David Ostrovsky*
+
+Maintainer, Gerrit Code Review
+
+++++
+<style type="text/css">
+#title-page {
+  border-bottom: 0;
+  text-align: center;
+  position: relative;
+  top: 30%;
+  font-size: 60px;
+}
+</style>
+++++
